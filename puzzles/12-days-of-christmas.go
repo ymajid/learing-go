@@ -58,19 +58,18 @@ func main() {
 	}
 	*/
 
-	var rev []string
+	n := len(gifts)
+	lines := make([]string, n)
 	for i, day := range days {
-		if i >= 1 {
-			rev = append([]string{gifts[i]}, rev...)
+		j := n - i - 1
+		lines[j] = gifts[i]
+
+		if i == 0 {
+			lines[n-1] = "A " + gifts[0] + "."
+		} else {
+			lines[n-1] = "And a " + gifts[0] + "."
 		}
 
-		var lines []string
-		lines = append(lines, rev...)
-		if i == 0 {
-			lines = append(lines, "A "+gifts[0]+".")
-		} else {
-			lines = append(lines, "And a "+gifts[0]+".")
-		}
-		fmt.Printf("On the %v day of Christmas\nMy true love gave to me:\n%v\n\n", day, strings.Join(lines, "\n"))
+		fmt.Printf("On the %v day of Christmas\nMy true love gave to me:\n%v\n\n", day, strings.Join(lines[j:], "\n"))
 	}
 }
