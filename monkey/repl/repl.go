@@ -6,9 +6,40 @@ import (
 	"io"
 
 	"monkey/lexer"
-	"monkey/token"
+	"monkey/parser"
 )
 
+const (
+	b      = "`"
+	MONKEY = `
+                 __,__
+        .--.  .-"     "-.  .--.
+       / .. \/  .-. .-.  \/ .. \
+      | |  '|  /   Y   \  |'  | |
+      | \   \  \ 0 | 0 /  /   / |
+       \ '- ,\.-"` + b + b + ` ` + b + b + `"-./, -' /
+        ` + b + `'-' /_   ^ ^   _\ '-'` + b + `
+        .--'|  \._   _./  |'--. 
+      /` + b + `    \   \ ` + b + `~` + b + ` /   /    ` + b + `\
+     /       '._ '---' _.'       \
+    /           '~---~'   |       \
+   /        _.             \       \
+  /   .'-./` + b + `/        .'~'-.|\       \
+ /   /    ` + b + `\:       /      ` + b + `\'.      \
+/   |       ;      |         '.` + b + `;    /
+\   \       ;      \           \/   /
+ '.  \      ;       \       \   ` + b + `  /
+   '._'.     \       '.      |   ;/_
+     /__>     '.       \_ _ _/   ,  '--.
+   .'   '.   .-~~~~~-. /     |--'` + b + `~~-.  \
+  // / .---'/  .-~~-._/ / / /---..__.'  /
+ ((_(_/    /  /      (_(_(_(---.__    .'
+           | |     _              ` + b + `~~` + b + `
+           | |     \'.
+            \ '....' |
+             '.,___.'
+`
+)
 const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
@@ -18,17 +49,29 @@ func Start(in io.Reader, out io.Writer) {
 		fmt.Printf(PROMPT)
 		scanned := scanner.Scan()
 		if !scanned {
-			break
+			return
 		}
 
 		line := scanner.Text()
 		l := lexer.New(line)
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Printf("%+v\n", tok)
-		}
-	}
+		p := parser.New(l)
 
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(out, "error reading input: %v\n", err)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(out, p.Errors())
+			continue
+		}
+
+		io.WriteString(out, program.String())
+		io.WriteString(out, "\n")
+	}
+}
+
+func printParserErrors(out io.Writer, errors []string) {
+	io.WriteString(out, MONKEY)
+	io.WriteString(out, "Whoops! We ran into some monkey business here!\n")
+	io.WriteString(out, " parser errors:\n")
+	for _, msg := range errors {
+		io.WriteString(out, "\t"+msg+"\n")
 	}
 }
